@@ -2,12 +2,12 @@
 -- Email: owner@example.com
 -- Password: password (bcrypt hash for 'password' with cost 10)
 INSERT OR IGNORE INTO users (id, name, email, password_hash, role) VALUES 
-  (1, 'Owner User', 'owner@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye5JFKm2hB3H6F/YaJWLh3qQvF4hN5o2i', 'owner');
+  (1, 'Owner User', 'owner@example.com', '$2b$10$3H3jTMmHR.8Iu.yBo20M..igJdXY70s7.6ZuRSYcfISmZ8BLl9noK', 'owner');
 
 -- Insert sample creator users
 INSERT OR IGNORE INTO users (id, name, email, password_hash, role) VALUES 
-  (2, 'Creator One', 'creator1@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye5JFKm2hB3H6F/YaJWLh3qQvF4hN5o2i', 'creator'),
-  (3, 'Creator Two', 'creator2@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye5JFKm2hB3H6F/YaJWLh3qQvF4hN5o2i', 'creator');
+  (2, 'Creator One', 'creator1@example.com', '$2b$10$3H3jTMmHR.8Iu.yBo20M..igJdXY70s7.6ZuRSYcfISmZ8BLl9noK', 'creator'),
+  (3, 'Creator Two', 'creator2@example.com', '$2b$10$3H3jTMmHR.8Iu.yBo20M..igJdXY70s7.6ZuRSYcfISmZ8BLl9noK', 'creator');
 
 -- Insert sample YouTube accounts
 INSERT OR IGNORE INTO accounts (id, name, platform, url, genre, owner_user_id, assigned_creator_id) VALUES 

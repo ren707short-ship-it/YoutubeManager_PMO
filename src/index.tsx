@@ -17,8 +17,11 @@ const app = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 
 // Enable CORS
 app.use('/api/*', cors({
-  origin: '*',
-  credentials: true
+  origin: (origin) => origin || '*',
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  exposeHeaders: ['Set-Cookie']
 }))
 
 // API routes
