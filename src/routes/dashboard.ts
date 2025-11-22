@@ -54,11 +54,41 @@ dashboard.get('/', async (c) => {
       LIMIT 10
     `).all()
     
+    // Get feedback pending videos
+    const feedbackPending = await c.env.DB.prepare(`
+      SELECT v.*, a.name as account_name, u.name as creator_name
+      FROM videos v
+      LEFT JOIN accounts a ON v.account_id = a.id
+      LEFT JOIN users u ON v.assigned_creator_id = u.id
+      WHERE v.feedback_required = 1 
+        AND v.feedback_completed_at IS NULL
+      ORDER BY v.feedback_deadline ASC
+      LIMIT 20
+    `).all()
+    
+    // Get creator statistics
+    const creatorStats = await c.env.DB.prepare(`
+      SELECT 
+        u.id,
+        u.name,
+        u.status,
+        COUNT(v.id) as total_videos,
+        SUM(CASE WHEN v.status = 'published' THEN 1 ELSE 0 END) as published_videos,
+        SUM(CASE WHEN v.feedback_required = 1 AND v.feedback_completed_at IS NULL THEN 1 ELSE 0 END) as pending_feedback
+      FROM users u
+      LEFT JOIN videos v ON u.id = v.assigned_creator_id
+      WHERE u.role = 'creator'
+      GROUP BY u.id, u.name, u.status
+      ORDER BY u.name
+    `).all()
+    
     return c.json({
       accounts: accounts.results,
       statusCounts: statusCounts.results,
       overdueVideos: overdueVideos.results,
-      upcomingVideos: upcomingVideos.results
+      upcomingVideos: upcomingVideos.results,
+      feedbackPending: feedbackPending.results,
+      creatorStats: creatorStats.results
     })
     
   } else {

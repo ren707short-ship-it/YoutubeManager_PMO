@@ -12,25 +12,35 @@ users.use('*', ownerOnlyMiddleware)
 // Get all users
 users.get('/', async (c) => {
   const result = await c.env.DB.prepare(
-    'SELECT id, name, email, role, created_at FROM users ORDER BY id'
+    'SELECT id, name, email, role, contract_platform, contract_date, contract_document_url, status, notes, created_at FROM users ORDER BY id'
   ).all()
   
   return c.json({ users: result.results })
 })
 
-// Get user by ID
+// Get user by ID (with full profile)
 users.get('/:id', async (c) => {
   const id = c.req.param('id')
   
   const result = await c.env.DB.prepare(
-    'SELECT id, name, email, role, created_at FROM users WHERE id = ?'
+    'SELECT id, name, email, role, contract_platform, contract_date, contract_document_url, status, notes, created_at FROM users WHERE id = ?'
   ).bind(id).first()
   
   if (!result) {
     return c.json({ error: 'User not found' }, 404)
   }
   
-  return c.json({ user: result })
+  // Get statistics for this user
+  const stats = await c.env.DB.prepare(`
+    SELECT 
+      COUNT(*) as total_videos,
+      SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published_videos,
+      SUM(CASE WHEN feedback_required = 1 AND feedback_completed_at IS NULL THEN 1 ELSE 0 END) as pending_feedback
+    FROM videos
+    WHERE assigned_creator_id = ?
+  `).bind(id).first()
+  
+  return c.json({ user: result, stats })
 })
 
 // Create new user
@@ -72,7 +82,7 @@ users.post('/', async (c) => {
 // Update user
 users.put('/:id', async (c) => {
   const id = c.req.param('id')
-  const { name, email, password, role } = await c.req.json()
+  const { name, email, password, role, contract_platform, contract_date, contract_document_url, status, notes } = await c.req.json()
   
   if (!name || !email || !role) {
     return c.json({ error: 'Name, email, and role are required' }, 400)
@@ -85,13 +95,21 @@ users.put('/:id', async (c) => {
   try {
     if (password) {
       const passwordHash = await hashPassword(password)
-      await c.env.DB.prepare(
-        'UPDATE users SET name = ?, email = ?, password_hash = ?, role = ? WHERE id = ?'
-      ).bind(name, email, passwordHash, role, id).run()
+      await c.env.DB.prepare(`
+        UPDATE users SET 
+          name = ?, email = ?, password_hash = ?, role = ?,
+          contract_platform = ?, contract_date = ?, contract_document_url = ?,
+          status = ?, notes = ?
+        WHERE id = ?
+      `).bind(name, email, passwordHash, role, contract_platform || null, contract_date || null, contract_document_url || null, status || 'active', notes || null, id).run()
     } else {
-      await c.env.DB.prepare(
-        'UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?'
-      ).bind(name, email, role, id).run()
+      await c.env.DB.prepare(`
+        UPDATE users SET 
+          name = ?, email = ?, role = ?,
+          contract_platform = ?, contract_date = ?, contract_document_url = ?,
+          status = ?, notes = ?
+        WHERE id = ?
+      `).bind(name, email, role, contract_platform || null, contract_date || null, contract_document_url || null, status || 'active', notes || null, id).run()
     }
     
     return c.json({ success: true })

@@ -12,6 +12,9 @@ import comments from './routes/comments'
 import ideas from './routes/ideas'
 import affiliates from './routes/affiliates'
 import dashboard from './routes/dashboard'
+import creatorAssets from './routes/creator-assets'
+import references from './routes/references'
+import accountAssets from './routes/account-assets'
 
 const app = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 
@@ -33,6 +36,9 @@ app.route('/api/comments', comments)
 app.route('/api/ideas', ideas)
 app.route('/api/affiliates', affiliates)
 app.route('/api/dashboard', dashboard)
+app.route('/api/creator-assets', creatorAssets)
+app.route('/api/references', references)
+app.route('/api/account-assets', accountAssets)
 
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
