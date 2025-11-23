@@ -1,10 +1,81 @@
-// YouTube Shorts Management System - Frontend Application
+// YouTube Shorts Management System v2.5 - Frontend Application
 
 // Global state
 const state = {
   currentUser: null,
   currentPage: 'login',
-  data: {}
+  data: {},
+  isLoading: false
+};
+
+// Modern UI Helper Functions
+const ui = {
+  // Show loading skeleton
+  showSkeleton(count = 3) {
+    const skeletons = Array(count).fill(0).map(() => `
+      <div class="card-modern animate-pulse">
+        <div class="card-body">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text" style="width: 80%;"></div>
+        </div>
+      </div>
+    `).join('');
+    return `<div class="grid-modern grid-3">${skeletons}</div>`;
+  },
+  
+  // Show toast notification
+  showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast-modern toast-${type}`;
+    
+    const icons = {
+      success: 'fa-check-circle',
+      error: 'fa-exclamation-circle',
+      info: 'fa-info-circle',
+      warning: 'fa-exclamation-triangle'
+    };
+    
+    toast.innerHTML = `
+      <i class="fas ${icons[type]}"></i>
+      <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(100px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  },
+  
+  // Get avatar with initials
+  getAvatar(name, size = 'md') {
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+    const color = colors[name.length % colors.length];
+    
+    return `
+      <div class="avatar avatar-${size}" style="background-color: ${color}">
+        ${initials}
+      </div>
+    `;
+  },
+  
+  // Get status badge
+  getStatusBadge(status) {
+    const labels = {
+      idea: 'アイデア',
+      script: '台本中',
+      editing: '編集中',
+      review: '確認待ち',
+      scheduled: '予約済み',
+      published: '投稿済み'
+    };
+    
+    return `<span class="badge-modern badge-${status}">${labels[status] || status}</span>`;
+  }
 };
 
 // API utilities
@@ -360,17 +431,7 @@ const utils = {
   },
   
   showNotification(message, type = 'success') {
-    const container = document.getElementById('notification-container') || createNotificationContainer();
-    const notification = document.createElement('div');
-    notification.className = `p-4 rounded-lg shadow-lg mb-2 ${
-      type === 'success' ? 'bg-green-500' : 'bg-red-500'
-    } text-white`;
-    notification.textContent = message;
-    container.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.remove();
-    }, 3000);
+    ui.showToast(message, type);
   }
 };
 
@@ -494,40 +555,51 @@ function renderLayout(content) {
   const isOwner = state.currentUser?.role === 'owner';
   
   app.innerHTML = `
-    <div class="flex min-h-screen">
-      <!-- Sidebar -->
-      <div class="w-64 bg-gray-800 text-white">
-        <div class="p-4">
-          <h1 class="text-xl font-bold">
+    <div class="flex min-h-screen bg-gray-50">
+      <!-- Modern Sidebar -->
+      <div class="w-64 sidebar-modern shadow-xl">
+        <div class="p-6">
+          <h1 class="text-2xl font-bold text-gradient flex items-center">
             <i class="fas fa-video mr-2"></i>
-            YouTube管理
+            YouTube Shorts
           </h1>
+          <p class="text-sm text-gray-500 mt-1">管理システム v2.5</p>
         </div>
-        <nav class="mt-4">
-          <a href="#" onclick="router.navigate('dashboard'); return false;" class="block px-4 py-2 hover:bg-gray-700 ${state.currentPage === 'dashboard' ? 'bg-gray-700' : ''}">
-            <i class="fas fa-home mr-2"></i> ダッシュボード
+        <nav class="mt-2 px-2">
+          <a href="#" onclick="router.navigate('dashboard'); return false;" class="sidebar-item flex items-center px-4 py-3 rounded-lg mb-1 ${state.currentPage === 'dashboard' ? 'active' : ''}">
+            <i class="fas fa-home text-lg mr-3" style="color: #3b82f6;"></i>
+            <span>ダッシュボード</span>
           </a>
-          <a href="#" onclick="router.navigate('accounts'); return false;" class="block px-4 py-2 hover:bg-gray-700 ${state.currentPage === 'accounts' ? 'bg-gray-700' : ''}">
-            <i class="fas fa-users mr-2"></i> アカウント
+          <a href="#" onclick="router.navigate('accounts'); return false;" class="sidebar-item flex items-center px-4 py-3 rounded-lg mb-1 ${state.currentPage === 'accounts' ? 'active' : ''}">
+            <i class="fas fa-users text-lg mr-3" style="color: #10b981;"></i>
+            <span>アカウント</span>
           </a>
-          <a href="#" onclick="router.navigate('videos'); return false;" class="block px-4 py-2 hover:bg-gray-700 ${state.currentPage === 'videos' ? 'bg-gray-700' : ''}">
-            <i class="fas fa-film mr-2"></i> 動画
+          <a href="#" onclick="router.navigate('videos'); return false;" class="sidebar-item flex items-center px-4 py-3 rounded-lg mb-1 ${state.currentPage === 'videos' ? 'active' : ''}">
+            <i class="fas fa-film text-lg mr-3" style="color: #f59e0b;"></i>
+            <span>動画</span>
           </a>
-          <a href="#" onclick="router.navigate('production-portal'); return false;" class="block px-4 py-2 hover:bg-gray-700 ${state.currentPage === 'production-portal' ? 'bg-gray-700' : ''}">
-            <i class="fas fa-folder-open mr-2"></i> 制作ポータル
+          <a href="#" onclick="router.navigate('production-portal'); return false;" class="sidebar-item flex items-center px-4 py-3 rounded-lg mb-1 ${state.currentPage === 'production-portal' ? 'active' : ''}">
+            <i class="fas fa-folder-open text-lg mr-3" style="color: #8b5cf6;"></i>
+            <span>制作ポータル</span>
           </a>
           ${isOwner ? `
-            <a href="#" onclick="router.navigate('ideas'); return false;" class="block px-4 py-2 hover:bg-gray-700 ${state.currentPage === 'ideas' ? 'bg-gray-700' : ''}">
-              <i class="fas fa-lightbulb mr-2"></i> アイデア
+            <div class="h-px bg-gray-200 my-2"></div>
+            <p class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">オーナー専用</p>
+            <a href="#" onclick="router.navigate('ideas'); return false;" class="sidebar-item flex items-center px-4 py-3 rounded-lg mb-1 ${state.currentPage === 'ideas' ? 'active' : ''}">
+              <i class="fas fa-lightbulb text-lg mr-3" style="color: #f59e0b;"></i>
+              <span>アイデア</span>
             </a>
-            <a href="#" onclick="router.navigate('affiliates'); return false;" class="block px-4 py-2 hover:bg-gray-700 ${state.currentPage === 'affiliates' ? 'bg-gray-700' : ''}">
-              <i class="fas fa-link mr-2"></i> アフィリエイト
+            <a href="#" onclick="router.navigate('affiliates'); return false;" class="sidebar-item flex items-center px-4 py-3 rounded-lg mb-1 ${state.currentPage === 'affiliates' ? 'active' : ''}">
+              <i class="fas fa-link text-lg mr-3" style="color: #06b6d4;"></i>
+              <span>アフィリエイト</span>
             </a>
-            <a href="#" onclick="router.navigate('users'); return false;" class="block px-4 py-2 hover:bg-gray-700 ${state.currentPage === 'users' ? 'bg-gray-700' : ''}">
-              <i class="fas fa-user-cog mr-2"></i> ユーザー管理
+            <a href="#" onclick="router.navigate('users'); return false;" class="sidebar-item flex items-center px-4 py-3 rounded-lg mb-1 ${state.currentPage === 'users' ? 'active' : ''}">
+              <i class="fas fa-user-cog text-lg mr-3" style="color: #6366f1;"></i>
+              <span>ユーザー管理</span>
             </a>
-            <a href="#" onclick="router.navigate('settings'); return false;" class="block px-4 py-2 hover:bg-gray-700 ${state.currentPage === 'settings' ? 'bg-gray-700' : ''}">
-              <i class="fas fa-cog mr-2"></i> 設定
+            <a href="#" onclick="router.navigate('settings'); return false;" class="sidebar-item flex items-center px-4 py-3 rounded-lg mb-1 ${state.currentPage === 'settings' ? 'active' : ''}">
+              <i class="fas fa-cog text-lg mr-3" style="color: #64748b;"></i>
+              <span>設定</span>
             </a>
           ` : ''}
         </nav>
@@ -535,23 +607,25 @@ function renderLayout(content) {
       
       <!-- Main content -->
       <div class="flex-1 flex flex-col">
-        <!-- Header -->
-        <header class="bg-white shadow px-6 py-4 flex justify-between items-center">
-          <h2 class="text-xl font-semibold">${getPageTitle()}</h2>
+        <!-- Modern Header -->
+        <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <h2 class="text-2xl font-bold text-gray-800">${getPageTitle()}</h2>
+          </div>
           <div class="flex items-center gap-4">
-            <span class="text-gray-600">
-              <i class="fas fa-user-circle mr-2"></i>
-              ${state.currentUser?.name} 
-              <span class="text-sm text-gray-500">(${state.currentUser?.role === 'owner' ? 'オーナー' : 'クリエイター'})</span>
-            </span>
-            <button onclick="handleLogout()" class="text-red-500 hover:text-red-700">
+            ${ui.getAvatar(state.currentUser?.name || 'User', 'md')}
+            <div class="flex flex-col">
+              <span class="text-sm font-semibold text-gray-700">${state.currentUser?.name}</span>
+              <span class="text-xs text-gray-500">${state.currentUser?.role === 'owner' ? 'オーナー' : 'クリエイター'}</span>
+            </div>
+            <button onclick="handleLogout()" class="ml-4 px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition">
               <i class="fas fa-sign-out-alt mr-1"></i> ログアウト
             </button>
           </div>
         </header>
         
-        <!-- Content -->
-        <main class="flex-1 p-6 overflow-auto">
+        <!-- Content with fade-in animation -->
+        <main class="flex-1 p-6 overflow-auto bg-gray-50 fade-in">
           ${content}
         </main>
       </div>
