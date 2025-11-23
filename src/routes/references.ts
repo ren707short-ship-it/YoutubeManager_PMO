@@ -84,4 +84,13 @@ references.delete('/channels/:id', ownerOnlyMiddleware, async (c) => {
   return c.json({ success: true })
 })
 
+// Delete reference video
+references.delete('/videos/:id', ownerOnlyMiddleware, async (c) => {
+  const id = c.req.param('id')
+  
+  await c.env.DB.prepare('DELETE FROM reference_videos WHERE id = ?').bind(id).run()
+  
+  return c.json({ success: true })
+})
+
 export default references

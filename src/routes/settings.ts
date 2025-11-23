@@ -1,7 +1,11 @@
 import { Hono } from 'hono'
 import type { Bindings, Variables } from '../types'
+import { authMiddleware } from '../middleware/auth'
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>()
+
+// Apply auth middleware
+app.use('/*', authMiddleware)
 
 // Get settings (owner only)
 app.get('/', async (c) => {

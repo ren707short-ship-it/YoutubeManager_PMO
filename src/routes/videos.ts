@@ -233,10 +233,10 @@ videos.put('/:id', async (c) => {
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `).bind(
-    account_id,
-    title,
+    account_id !== undefined ? account_id : null,
+    title !== undefined ? title : null,
     template_type || null,
-    status,
+    status !== undefined ? status : null,
     assigned_creator_id || null,
     due_date || null,
     script_text || null,
@@ -245,8 +245,8 @@ videos.put('/:id', async (c) => {
     affiliate_link_id || null,
     youtube_url || null,
     published_at || null,
-    metrics_view_count || 0,
-    metrics_like_count || 0,
+    metrics_view_count !== undefined ? metrics_view_count : 0,
+    metrics_like_count !== undefined ? metrics_like_count : 0,
     id
   ).run()
   

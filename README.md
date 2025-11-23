@@ -15,6 +15,12 @@ YouTubeショートの量産運用を管理するための、オーナー（人�
 - **開発版**: https://3000-irnchy1kkvsexgxna5tqf-583b4d74.sandbox.novita.ai
 - **本番版**: Cloudflare Pages にデプロイ後に取得
 
+### 🔧 最新の修正状況（2025-11-23）
+- ✅ **v2機能の認証問題を修正**: settings, templates, manuals, youtubeルートに認証ミドルウェアを追加
+- ✅ **参照チャンネル削除機能を追加**: DELETE /api/references/videos/:id エンドポイント実装
+- ✅ **D1バインドエラーを修正**: undefined値をnullに変換する処理を追加
+- ✅ **設定画面へのアクセス**: curlテストで正常動作確認済み
+
 ### 🔑 ログイン情報
 - **オーナー**: `owner@example.com` / `password`
 - **クリエイター1**: `creator1@example.com` / `password`
@@ -212,10 +218,16 @@ YouTubeショートの量産運用を管理するための、オーナー（人�
 
 詳細なスキーマは `migrations/0001_initial_schema.sql` および `migrations/0002_add_advanced_features.sql` を参照してください。
 
-## 📚 マニュアル
+## 📚 ドキュメント
 
+### マニュアル
 - **[オーナー向けマニュアル](./MANUAL_OWNER.md)** - システム管理者・運営責任者向け
 - **[クリエイター向けマニュアル](./MANUAL_CREATOR.md)** - 外注・制作担当者向け
+
+### アップグレード提案
+- **[📊 アップグレード提案サマリー](./UPGRADE_SUMMARY.md)** - v2の問題点とv3への進化提案（必読）
+- **[📋 v3完全アップグレード提案書](./PROPOSAL_V3_UPGRADE.md)** - エンタープライズ級SaaSへの詳細計画
+- **[🚀 v2.5クイックウィン施策](./QUICK_WINS_V2.5.md)** - 2-3日で即座に改善できる施策
 
 ## セットアップ方法
 

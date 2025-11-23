@@ -1,7 +1,11 @@
 import { Hono } from 'hono'
 import type { Bindings, Variables } from '../types'
+import { authMiddleware } from '../middleware/auth'
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>()
+
+// Apply auth middleware
+app.use('/*', authMiddleware)
 
 // Sync account videos from YouTube API (owner only)
 app.post('/sync/account/:accountId', async (c) => {
@@ -209,7 +213,7 @@ app.post('/sync/reference/:channelId', async (c) => {
           channelId,
           videoId,
           snippet.title,
-          snippet.description,
+          snippet.description || null,
           snippet.publishedAt,
           stats.viewCount,
           stats.likeCount,
@@ -308,10 +312,10 @@ app.get('/top-videos', async (c) => {
     LEFT JOIN accounts a ON v.account_id = a.id
     WHERE v.status = 'published'
       AND v.published_at IS NOT NULL
-      AND v.published_at >= datetime('now', '-' || ? || ' days')
+      AND v.published_at >= datetime('now', ? || ' days')
     ORDER BY v.metrics_view_count DESC
     LIMIT ?
-  `).bind(days, parseInt(limit)).all()
+  `).bind(`-${days}`, parseInt(limit)).all()
   
   return c.json({ videos: results })
 })
