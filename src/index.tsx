@@ -15,6 +15,10 @@ import dashboard from './routes/dashboard'
 import creatorAssets from './routes/creator-assets'
 import references from './routes/references'
 import accountAssets from './routes/account-assets'
+import templates from './routes/templates'
+import manuals from './routes/manuals'
+import settings from './routes/settings'
+import youtube from './routes/youtube'
 
 const app = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 
@@ -39,6 +43,10 @@ app.route('/api/dashboard', dashboard)
 app.route('/api/creator-assets', creatorAssets)
 app.route('/api/references', references)
 app.route('/api/account-assets', accountAssets)
+app.route('/api/templates', templates)
+app.route('/api/manuals', manuals)
+app.route('/api/settings', settings)
+app.route('/api/youtube', youtube)
 
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
